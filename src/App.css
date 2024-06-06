@@ -1,0 +1,40 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+main {
+  max-width: 800px;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.blank-highlight {
+  background-color: #acd2fe;
+  cursor: pointer;
+}
+
+.yellow-highlight {
+  background-color: #e9c610;
+  cursor: pointer;
+}
+
+.red-highlight {
+  background-color: #ff5b5b;
+  cursor: pointer;
+}
+
+.green-highlight {
+  background-color: #27ea8f;
+  cursor: pointer;
+}
+
+.white-highlight {
+  background-color: #fff;
+  cursor: pointer;
+}
