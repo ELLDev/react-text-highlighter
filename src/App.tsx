@@ -65,37 +65,27 @@ function App() {
     highlighterRef.current?.remove(id);
   }
 
-  function addHighlight(id: string) {
-    const highlightedElement = document.querySelector(
-      `[data-highlight-id="${id}"]`
-    );
-
-    if (highlightedElement instanceof HTMLElement) {
-      highlightedElement.className = COLOR_MAPPER[selectedColor].className;
-      highlightTooltips[0].isDeleteTooltip = true;
-      highlightTooltips[0].isVisible = false;
-    }
-  }
-
   function handleAddHighlight(id: string) {
-    if (!isHighlighterActiveRef.current) {
-      toggleHighlighter();
-    }
+    toggleHighlighter();
 
     const blankHighlights: NodeListOf<HTMLElement> =
       document.querySelectorAll(".blank-highlight");
-    const hasMultipleBlankHighlights = blankHighlights.length > 0;
-
-    if (!hasMultipleBlankHighlights) {
-      addHighlight(id);
-      return;
-    }
 
     blankHighlights.forEach((highlight) => {
       highlight.className = COLOR_MAPPER[selectedColor].className;
-      highlightTooltips[0].isDeleteTooltip = true;
-      highlightTooltips[0].isVisible = false;
     });
+
+    setHighlightTooltips((prev) =>
+      prev.map((tooltip) =>
+        tooltip.id === id
+          ? {
+              ...tooltip,
+              isDeleteTooltip: true,
+              isVisible: false,
+            }
+          : tooltip
+      )
+    );
   }
 
   function toggleTooltipVisibility({ highlightId }: { highlightId: string }) {
@@ -114,6 +104,33 @@ function App() {
   function handleClearTextHighlights() {
     highlighterRef.current?.removeAll();
     setHighlightTooltips([]);
+  }
+
+  function removeBlankHighlights() {
+    const blankHighlights: NodeListOf<HTMLElement> =
+      document.querySelectorAll(".blank-highlight");
+
+    if (blankHighlights.length > 0) {
+      blankHighlights.forEach((highlight) => {
+        const highlightId = highlight.dataset.highlightId;
+
+        if (highlightId) {
+          highlighterRef.current?.removeClass(
+            "highlight-wrap-hover",
+            highlightId
+          );
+          highlighterRef.current?.remove(highlightId);
+
+          setHighlightTooltips((prev) =>
+            prev.filter((tooltip) => {
+              if (tooltip.id !== highlightId) {
+                return tooltip;
+              }
+            })
+          );
+        }
+      });
+    }
   }
 
   useEffect(() => {
@@ -165,20 +182,20 @@ function App() {
           };
 
           if (isHighlighterActiveRef.current) {
-            setHighlightTooltips((prev) => [...prev, tooltip]);
-          } else {
-            const tooltipsWithoutBlankHighlights = [
-              ...highlightTooltips,
-            ].filter((tooltip) => tooltip.isDeleteTooltip);
-
-            setHighlightTooltips([...tooltipsWithoutBlankHighlights, tooltip]);
+            return setHighlightTooltips((prev) => [...prev, tooltip]);
           }
+
+          setHighlightTooltips((prev) => [
+            ...prev.filter((tooltip) => tooltip.isDeleteTooltip),
+            tooltip,
+          ]);
         });
         // store.save(sources.map((hs) => ({ hs })));
+      })
+      .on(Highlighter.event.REMOVE, ({ ids }) => {
+        console.log("REMOVE", ids);
+        // ids.forEach((id) => store.remove(id));
       });
-    // .on(Highlighter.event.REMOVE, ({ ids }) => {
-    //   ids.forEach((id) => store.remove(id));
-    // });
 
     highlighter.run();
 
@@ -194,44 +211,18 @@ function App() {
 
   useEffect(() => {
     function handleDocumentMouseDown(e: MouseEvent) {
-      if (
+      const isTooltipElement =
         e.target instanceof HTMLElement &&
-        (e.target.dataset.highlightId || e.target.dataset.id)
-      ) {
+        e.target.classList.contains("highlight-tooltip");
+
+      if (isTooltipElement) {
         return;
       }
+
       hideTooltips();
 
-      if (
-        isHighlighterActiveRef.current ||
-        (e.target instanceof HTMLElement && e.target.dataset.id)
-      ) {
-        return;
-      }
-
-      const blankHighlights: NodeListOf<HTMLElement> =
-        document.querySelectorAll(".blank-highlight");
-
-      if (blankHighlights.length > 0) {
-        blankHighlights.forEach((highlight) => {
-          const highlightId = highlight.dataset.highlightId;
-
-          if (highlightId) {
-            highlighterRef.current?.removeClass(
-              "highlight-wrap-hover",
-              highlightId
-            );
-            highlighterRef.current?.remove(highlightId);
-
-            setHighlightTooltips((prev) =>
-              prev.filter((tooltip) => {
-                if (tooltip.id !== highlightId) {
-                  return tooltip;
-                }
-              })
-            );
-          }
-        });
+      if (!isHighlighterActiveRef.current) {
+        removeBlankHighlights();
       }
     }
 
