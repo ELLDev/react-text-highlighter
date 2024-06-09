@@ -31,7 +31,7 @@ export function HighlighterMenu({
   onClearTextHighlights,
 }: HighlighterMenuProps) {
   return (
-    <HighlighterMenuWrapper isOpen={isMenuOpen}>
+    <HighlighterMenuWrapper open={isMenuOpen}>
       <HighlighterMenuHeader>
         <span>Marcação de texto</span>
         <CloseButton onClick={onCloseMenu}>

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
-export const HighlighterMenuWrapper = styled.div<{ isOpen: boolean }>`
-  display: ${(props) => (props.isOpen ? "block" : "none")};
+export const HighlighterMenuWrapper = styled.div<{ open: boolean }>`
+  display: ${(props) => (props.open ? "block" : "none")};
   position: absolute;
   width: fit-content;
   top: 42px;
