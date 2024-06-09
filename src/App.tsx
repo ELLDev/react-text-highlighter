@@ -3,9 +3,7 @@ import Highlighter from "web-highlighter";
 import "./App.css";
 // import LocalStore from "./LocalStore";
 import { useCallback, useEffect, useRef, useState } from "react";
-import HighlightTooltip, {
-  HighlightTooltipProps,
-} from "./components/HighlightTooltip";
+import HighlightTooltip, { TooltipProps } from "./components/HighlightTooltip";
 import {
   COLOR_MAPPER,
   DEFAULT_COLOR,
@@ -20,9 +18,9 @@ function App() {
   const [isHighlighterActive, setIsHighlighterActive] = useState(false);
   const [selectedColor, setSelectedColor] =
     useState<HighlightColorName>("yellow");
-  const [highlightTooltips, setHighlightTooltips] = useState<
-    HighlightTooltipProps[]
-  >([]);
+  const [highlightTooltips, setHighlightTooltips] = useState<TooltipProps[]>(
+    []
+  );
   const highlighterRef = useRef<Highlighter | null>(null);
   // const store = useRef(new LocalStore()).current;
   const isHighlighterActiveRef = useRef(isHighlighterActive);
@@ -132,6 +130,19 @@ function App() {
       });
     }
   }
+
+  function handleClickTooltip({
+    isDeleteTooltip,
+    tooltipId,
+  }: {
+    isDeleteTooltip: boolean;
+    tooltipId: string;
+  }) {
+    isDeleteTooltip
+      ? deleteHighlight(tooltipId)
+      : handleAddHighlight(tooltipId);
+  }
+
 
   useEffect(() => {
     const highlighter = new Highlighter({
@@ -249,25 +260,24 @@ function App() {
         <TextSample />
       </main>
 
-      {highlightTooltips.map(
-        (tooltip) =>
-          tooltip.isVisible && (
-            <HighlightTooltip
-              key={tooltip.id}
-              className="highlight-tooltip"
-              top={tooltip.top}
-              left={tooltip.left}
-              id={tooltip.id}
-              isDeleteTooltip={tooltip.isDeleteTooltip}
-              isVisible={true}
-              onClick={() =>
-                tooltip.isDeleteTooltip
-                  ? deleteHighlight(tooltip.id)
-                  : handleAddHighlight(tooltip.id)
-              }
-            />
-          )
-      )}
+      {highlightTooltips.map((tooltip) => (
+        <HighlightTooltip
+          key={tooltip.id}
+          data-visible={tooltip.isVisible}
+          className="highlight-tooltip"
+          top={tooltip.top}
+          left={tooltip.left}
+          id={tooltip.id}
+          onClick={() =>
+            handleClickTooltip({
+              isDeleteTooltip: tooltip.isDeleteTooltip,
+              tooltipId: tooltip.id,
+            })
+          }
+        >
+          {tooltip.isDeleteTooltip ? "Limpar Marcação" : "Marcar texto"}
+        </HighlightTooltip>
+      ))}
     </>
   );
 }

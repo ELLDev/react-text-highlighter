@@ -3,9 +3,8 @@ import styled from "styled-components";
 export const HighlightTooltipContainer = styled.button<{
   left: number;
   top: number;
-  visible: boolean;
 }>`
-  display: ${(props) => (props.visible ? "block" : "none")};
+  display: none;
   box-sizing: border-box;
   position: absolute;
   border: 1px solid #606a71;
@@ -22,6 +21,10 @@ export const HighlightTooltipContainer = styled.button<{
   z-index: 1;
   left: ${(props) => `${props.left - 60}px`};
   top: ${(props) => `${props.top - 46}px`};
+
+  &[data-active="true"] {
+    display: block;
+  }
 
   &::after {
     content: "";
