@@ -88,7 +88,7 @@ function App() {
 
     store.remove(id);
 
-    storedBlankHighlight &&
+    if (storedBlankHighlight) {
       store.save({
         highlightSource: {
           id: storedBlankHighlight?.highlightSource.id,
@@ -96,12 +96,11 @@ function App() {
           endMeta: storedBlankHighlight?.highlightSource.endMeta,
           text: storedBlankHighlight?.highlightSource.text,
           extra: {
-            color: isHighlighterActiveRef.current
-              ? COLOR_MAPPER[selectedColorRef.current].className
-              : DISABLED_COLOR.className,
+            color: COLOR_MAPPER[selectedColorRef.current].className,
           },
         },
       });
+    }
   }
 
   function toggleTooltipVisibility({ highlightId }: { highlightId: string }) {
