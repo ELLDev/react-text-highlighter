@@ -63,7 +63,7 @@ function App() {
     highlighterRef.current?.remove(id);
   }
 
-  function handleAddHighlight(id: string) {
+  function addHighlight(id: string) {
     toggleHighlighter();
 
     const blankHighlights: NodeListOf<HTMLElement> =
@@ -138,9 +138,7 @@ function App() {
     isDeleteTooltip: boolean;
     tooltipId: string;
   }) {
-    isDeleteTooltip
-      ? deleteHighlight(tooltipId)
-      : handleAddHighlight(tooltipId);
+    isDeleteTooltip ? deleteHighlight(tooltipId) : addHighlight(tooltipId);
   }
 
 
