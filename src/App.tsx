@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Highlighter from "web-highlighter";
 import "./App.css";
 import LocalStore from "./LocalStore";
