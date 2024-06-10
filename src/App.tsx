@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Highlighter from "web-highlighter";
 import "./App.css";
-// import LocalStore from "./LocalStore";
+import LocalStore from "./LocalStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import HighlightTooltip, { TooltipProps } from "./components/HighlightTooltip";
 import {
@@ -18,11 +18,12 @@ function App() {
   const [isHighlighterActive, setIsHighlighterActive] = useState(false);
   const [selectedColor, setSelectedColor] =
     useState<HighlightColorName>("yellow");
+  const selectedColorRef = useRef(selectedColor);
   const [highlightTooltips, setHighlightTooltips] = useState<TooltipProps[]>(
     []
   );
   const highlighterRef = useRef<Highlighter | null>(null);
-  // const store = useRef(new LocalStore()).current;
+  const store = useRef(new LocalStore()).current;
   const isHighlighterActiveRef = useRef(isHighlighterActive);
 
   const switchColor = useCallback((color: HighlightColorName) => {
@@ -59,19 +60,17 @@ function App() {
 
   function deleteHighlight(id: string) {
     setHighlightTooltips((prev) => prev.filter((tooltip) => tooltip.id !== id));
-    highlighterRef.current?.removeClass("highlight-wrap-hover", id);
     highlighterRef.current?.remove(id);
   }
 
   function addHighlight(id: string) {
-    toggleHighlighter();
+    const blankHighlights = highlighterRef.current?.getDoms(id);
 
-    const blankHighlights: NodeListOf<HTMLElement> =
-      document.querySelectorAll(".blank-highlight");
-
-    blankHighlights.forEach((highlight) => {
+    blankHighlights?.forEach((highlight) => {
       highlight.className = COLOR_MAPPER[selectedColor].className;
     });
+
+    toggleHighlighter();
 
     setHighlightTooltips((prev) =>
       prev.map((tooltip) =>
@@ -113,10 +112,6 @@ function App() {
         const highlightId = highlight.dataset.highlightId;
 
         if (highlightId) {
-          highlighterRef.current?.removeClass(
-            "highlight-wrap-hover",
-            highlightId
-          );
           highlighterRef.current?.remove(highlightId);
 
           setHighlightTooltips((prev) =>
@@ -141,8 +136,17 @@ function App() {
     isDeleteTooltip ? deleteHighlight(tooltipId) : addHighlight(tooltipId);
   }
 
+  useEffect(() => {
+    selectedColorRef.current = selectedColor;
+  }, [selectedColor]);
 
   useEffect(() => {
+    const storedHighlights = store
+      .getAll()
+      .filter(
+        ({ highlightSource }) =>
+          highlightSource.extra.color !== DISABLED_COLOR.className
+      );
     const highlighter = new Highlighter({
       exceptSelectors: [".highlight-tooltip", "b", "img", "button", "header"],
       style: {
@@ -153,10 +157,40 @@ function App() {
     });
     highlighterRef.current = highlighter;
 
-    // const storedHighlights = store.getAll();
-    // storedHighlights.forEach(({ hs }) =>
-    //   highlighter.fromStore(hs.startMeta, hs.endMeta, hs.text, hs.id, hs.extra)
-    // );
+    storedHighlights.forEach(({ highlightSource }) =>
+      highlighter.fromStore(
+        highlightSource.startMeta,
+        highlightSource.endMeta,
+        highlightSource.text,
+        highlightSource.id,
+        highlightSource.extra
+      )
+    );
+
+    highlighter.getDoms().forEach((highlightElement) => {
+      const highlightId = highlighter.getIdByDom(highlightElement);
+      const highlightColor = storedHighlights.find(
+        (storedHighlight) => storedHighlight.highlightSource.id === highlightId
+      )?.highlightSource.extra.color;
+      const position = getPosition(highlighter.getDoms(highlightId)[0]);
+      const tooltip = {
+        id: highlightId,
+        top: position.top,
+        left: position.left,
+        isDeleteTooltip: true,
+        isVisible: false,
+      };
+
+      highlightElement.className = highlightColor || DEFAULT_COLOR.className;
+
+      setHighlightTooltips((prev) => {
+        if (prev.find((tooltip) => tooltip.id === highlightId)) {
+          return prev;
+        }
+
+        return [...prev, tooltip];
+      });
+    });
 
     highlighter
       .on(Highlighter.event.CLICK, ({ id }) => {
@@ -165,7 +199,6 @@ function App() {
           "blank-highlight";
 
         if (isBlankHighlight) {
-          highlighterRef.current?.removeClass("highlight-wrap-hover", id);
           highlighterRef.current?.remove(id);
           setHighlightTooltips((prev) =>
             prev.filter((tooltip) => tooltip.id !== id)
@@ -180,8 +213,23 @@ function App() {
       })
       .on(Highlighter.event.CREATE, ({ sources }) => {
         sources.forEach((source) => {
-          const position = getPosition(highlighter.getDoms(source.id)[0]);
+          store.save(
+            sources.map((source) => ({
+              highlightSource: {
+                id: source.id,
+                startMeta: source.startMeta,
+                endMeta: source.endMeta,
+                text: source.text,
+                extra: {
+                  color: isHighlighterActiveRef.current
+                    ? COLOR_MAPPER[selectedColorRef.current].className
+                    : DISABLED_COLOR.className,
+                },
+              },
+            }))
+          );
 
+          const position = getPosition(highlighter.getDoms(source.id)[0]);
           const tooltip = {
             id: source.id,
             top: position.top,
@@ -191,7 +239,8 @@ function App() {
           };
 
           if (isHighlighterActiveRef.current) {
-            return setHighlightTooltips((prev) => [...prev, tooltip]);
+            setHighlightTooltips((prev) => [...prev, tooltip]);
+            return;
           }
 
           setHighlightTooltips((prev) => [
@@ -201,11 +250,9 @@ function App() {
             tooltip,
           ]);
         });
-        // store.save(sources.map((hs) => ({ hs })));
       })
       .on(Highlighter.event.REMOVE, ({ ids }) => {
-        console.log("REMOVE", ids);
-        // ids.forEach((id) => store.remove(id));
+        ids.forEach((id) => store.remove(id));
       });
 
     highlighter.run();

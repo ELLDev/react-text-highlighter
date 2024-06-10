@@ -1,10 +1,16 @@
+import { DomMeta } from "web-highlighter/dist/types";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface HighlightStore {
-  hs: {
+  highlightSource: {
     id: string;
-    [key: string]: any;
+    startMeta: DomMeta;
+    endMeta: DomMeta;
+    text: string;
+    extra: {
+      color: string;
+    };
   };
-  [key: string]: any;
 }
 
 class LocalStore {
@@ -12,7 +18,7 @@ class LocalStore {
 
   constructor(id?: string) {
     this.key =
-      id !== undefined ? `highlight-mengshou-${id}` : "highlight-mengshou";
+      id !== undefined ? `highlight-storage-${id}` : "highlight-storage";
   }
 
   private storeToJson(): HighlightStore[] {
@@ -33,15 +39,15 @@ class LocalStore {
   public save(data: HighlightStore | HighlightStore[]): void {
     const stores = this.storeToJson();
     const map: { [key: string]: number } = {};
-    stores.forEach((store, idx) => (map[store.hs.id] = idx));
+    stores.forEach((store, idx) => (map[store.highlightSource.id] = idx));
 
     if (!Array.isArray(data)) {
       data = [data];
     }
 
     data.forEach((store) => {
-      if (map[store.hs.id] !== undefined) {
-        stores[map[store.hs.id]] = store;
+      if (map[store.highlightSource.id] !== undefined) {
+        stores[map[store.highlightSource.id]] = store;
       } else {
         stores.push(store);
       }
@@ -57,7 +63,7 @@ class LocalStore {
 
   public remove(id: string): void {
     const stores = this.storeToJson();
-    const index = stores.findIndex((store) => store.hs.id === id);
+    const index = stores.findIndex((store) => store.highlightSource.id === id);
     if (index !== -1) {
       stores.splice(index, 1);
     }
