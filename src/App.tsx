@@ -65,6 +65,9 @@ function App() {
 
   function addHighlight(id: string) {
     const blankHighlights = highlighterRef.current?.getDoms(id);
+    const storedBlankHighlight = store
+      .getAll()
+      .find((highlight) => highlight.highlightSource.id === id);
 
     blankHighlights?.forEach((highlight) => {
       highlight.className = COLOR_MAPPER[selectedColor].className;
@@ -83,6 +86,23 @@ function App() {
           : tooltip
       )
     );
+
+    store.remove(id);
+
+    storedBlankHighlight &&
+      store.save({
+        highlightSource: {
+          id: storedBlankHighlight?.highlightSource.id,
+          startMeta: storedBlankHighlight?.highlightSource.startMeta,
+          endMeta: storedBlankHighlight?.highlightSource.endMeta,
+          text: storedBlankHighlight?.highlightSource.text,
+          extra: {
+            color: isHighlighterActiveRef.current
+              ? COLOR_MAPPER[selectedColorRef.current].className
+              : DISABLED_COLOR.className,
+          },
+        },
+      });
   }
 
   function toggleTooltipVisibility({ highlightId }: { highlightId: string }) {
@@ -101,6 +121,7 @@ function App() {
   function handleClearTextHighlights() {
     highlighterRef.current?.removeAll();
     setHighlightTooltips([]);
+    store.removeAll();
   }
 
   function removeBlankHighlights() {
