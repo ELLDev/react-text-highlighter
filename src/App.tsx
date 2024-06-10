@@ -1,7 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import Highlighter from "web-highlighter";
 import "./App.css";
 import LocalStore from "./LocalStore";
-import { useCallback, useEffect, useRef, useState } from "react";
 import HighlightTooltip, { TooltipProps } from "./components/HighlightTooltip";
 import {
   COLOR_MAPPER,
@@ -88,7 +88,7 @@ function App() {
 
     store.remove(id);
 
-    if (storedBlankHighlight) {
+    storedBlankHighlight &&
       store.save({
         highlightSource: {
           id: storedBlankHighlight?.highlightSource.id,
@@ -96,11 +96,12 @@ function App() {
           endMeta: storedBlankHighlight?.highlightSource.endMeta,
           text: storedBlankHighlight?.highlightSource.text,
           extra: {
-            color: COLOR_MAPPER[selectedColorRef.current].className,
+            color: isHighlighterActiveRef.current
+              ? COLOR_MAPPER[selectedColorRef.current].className
+              : DISABLED_COLOR.className,
           },
         },
       });
-    }
   }
 
   function toggleTooltipVisibility({ highlightId }: { highlightId: string }) {
@@ -188,14 +189,19 @@ function App() {
 
     highlighter.getDoms().forEach((highlightElement) => {
       const highlightId = highlighter.getIdByDom(highlightElement);
+
       const highlightColor = storedHighlights.find(
         (storedHighlight) => storedHighlight.highlightSource.id === highlightId
       )?.highlightSource.extra.color;
-      const position = getPosition(highlighter.getDoms(highlightId)[0]);
+      const position = getPosition(highlightElement);
+      const tooltipWidth = position.width;
+      const tooltipLeft = tooltipWidth / 2;
+
       const tooltip = {
         id: highlightId,
         top: position.top,
-        left: position.left,
+        left: tooltipLeft,
+        width: tooltipWidth,
         isDeleteTooltip: true,
         isVisible: false,
       };
@@ -248,11 +254,22 @@ function App() {
             }))
           );
 
-          const position = getPosition(highlighter.getDoms(source.id)[0]);
+          const highlightDoms = highlighter.getDoms(source.id);
+          const firstDom = highlightDoms[0].getBoundingClientRect();
+          const lastDom =
+            highlightDoms[highlightDoms.length - 1].getBoundingClientRect();
+
+          const position = {
+            top: (firstDom.top + lastDom.bottom) / 2 - 55,
+            left: (firstDom.left + lastDom.right) / 2,
+            width: firstDom.width,
+          };
+
           const tooltip = {
             id: source.id,
             top: position.top,
             left: position.left,
+            width: position.width,
             isDeleteTooltip: isHighlighterActiveRef.current ? true : false,
             isVisible: isHighlighterActiveRef.current ? false : true,
           };
@@ -279,7 +296,6 @@ function App() {
     return () => {
       highlighter.dispose();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -339,6 +355,7 @@ function App() {
           className="highlight-tooltip"
           top={tooltip.top}
           left={tooltip.left}
+          width={tooltip.width}
           id={tooltip.id}
           onClick={() =>
             handleClickTooltip({
