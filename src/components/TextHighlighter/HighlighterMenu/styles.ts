@@ -24,7 +24,7 @@ export const HighlighterMenuHeader = styled.div`
   border-bottom: 1px solid #edf0f2;
 
   span {
-    font-size: 14p1x;
+    font-size: 14px;
     font-weight: 600;
     color: #606a71;
     line-height: 1.5;
