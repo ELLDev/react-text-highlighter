@@ -197,7 +197,9 @@ function App() {
           }
 
           setHighlightTooltips((prev) => [
-            ...prev.filter((tooltip) => tooltip.isDeleteTooltip),
+            ...prev
+              .filter((tooltip) => tooltip.isDeleteTooltip)
+              .map((_tooltip) => ({ ..._tooltip, isVisible: false })),
             tooltip,
           ]);
         });
@@ -225,16 +227,22 @@ function App() {
       const isTooltipElement =
         e.target instanceof HTMLElement &&
         e.target.classList.contains("highlight-tooltip");
+      const isHighlighterElement =
+        e.target instanceof HTMLElement && e.target.dataset.highlightId;
 
       if (isTooltipElement) {
         return;
       }
 
-      hideTooltips();
-
       if (!isHighlighterActiveRef.current) {
         removeBlankHighlights();
       }
+
+      if (isHighlighterElement) {
+        return;
+      }
+
+      hideTooltips();
     }
 
     document.addEventListener("mousedown", handleDocumentMouseDown);

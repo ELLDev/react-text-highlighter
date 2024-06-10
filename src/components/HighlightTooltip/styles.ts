@@ -22,7 +22,7 @@ export const HighlightTooltipContainer = styled.button<{
   left: ${(props) => `${props.left - 60}px`};
   top: ${(props) => `${props.top - 46}px`};
 
-  &[data-active="true"] {
+  &[data-visible="true"] {
     display: block;
   }
 
