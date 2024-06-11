@@ -60,6 +60,7 @@ function App() {
   function deleteHighlight(id: string) {
     setHighlightTooltips((prev) => prev.filter((tooltip) => tooltip.id !== id));
     highlighterRef.current?.remove(id);
+    store.remove(id);
   }
 
   function addHighlight(id: string) {
@@ -134,11 +135,7 @@ function App() {
           highlighterRef.current?.remove(highlightId);
 
           setHighlightTooltips((prev) =>
-            prev.filter((tooltip) => {
-              if (tooltip.id !== highlightId) {
-                return tooltip;
-              }
-            })
+            prev.filter((tooltip) => tooltip.id !== highlightId)
           );
         }
       });
@@ -194,11 +191,11 @@ function App() {
       )?.highlightSource.extra.color;
       const position = getPosition(highlightElement);
       const tooltipWidth = position.width;
-      const tooltipLeft = tooltipWidth / 2;
+      const tooltipLeft = position.left + tooltipWidth / 2;
 
       const tooltip = {
         id: highlightId,
-        top: position.top,
+        top: position.top - 50,
         left: tooltipLeft,
         width: tooltipWidth,
         isDeleteTooltip: true,
