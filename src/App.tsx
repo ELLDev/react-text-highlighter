@@ -185,19 +185,16 @@ function App() {
 
     highlighter.getDoms().forEach((highlightElement) => {
       const highlightId = highlighter.getIdByDom(highlightElement);
-
       const highlightColor = storedHighlights.find(
         (storedHighlight) => storedHighlight.highlightSource.id === highlightId
       )?.highlightSource.extra.color;
-      const position = getPosition(highlightElement);
-      const tooltipWidth = position.width;
-      const tooltipLeft = position.left + tooltipWidth / 2;
-
+      const highlightDoms = highlighter.getDoms(highlightId);
+      const position = getPosition(highlightDoms);
       const tooltip = {
         id: highlightId,
-        top: position.top - 50,
-        left: tooltipLeft,
-        width: tooltipWidth,
+        top: position.top,
+        left: position.left,
+        width: position.width,
         isDeleteTooltip: true,
         isVisible: false,
       };
@@ -251,16 +248,7 @@ function App() {
           );
 
           const highlightDoms = highlighter.getDoms(source.id);
-          const firstDom = highlightDoms[0].getBoundingClientRect();
-          const lastDom =
-            highlightDoms[highlightDoms.length - 1].getBoundingClientRect();
-
-          const position = {
-            top: (firstDom.top + lastDom.bottom) / 2 - 55,
-            left: (firstDom.left + lastDom.right) / 2,
-            width: firstDom.width,
-          };
-
+          const position = getPosition(highlightDoms);
           const tooltip = {
             id: source.id,
             top: position.top,
