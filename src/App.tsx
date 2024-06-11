@@ -60,7 +60,6 @@ function App() {
   function deleteHighlight(id: string) {
     setHighlightTooltips((prev) => prev.filter((tooltip) => tooltip.id !== id));
     highlighterRef.current?.remove(id);
-    store.remove(id);
   }
 
   function addHighlight(id: string) {
@@ -120,7 +119,6 @@ function App() {
   function handleClearTextHighlights() {
     highlighterRef.current?.removeAll();
     setHighlightTooltips([]);
-    store.removeAll();
   }
 
   function removeBlankHighlights() {
