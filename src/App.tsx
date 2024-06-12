@@ -1,7 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import Highlighter from "web-highlighter";
 import "./App.css";
 import LocalStore from "./LocalStore";
-import { useCallback, useEffect, useRef, useState } from "react";
 import HighlightTooltip, { TooltipProps } from "./components/HighlightTooltip";
 import {
   COLOR_MAPPER,
@@ -119,7 +119,6 @@ function App() {
   function handleClearTextHighlights() {
     highlighterRef.current?.removeAll();
     setHighlightTooltips([]);
-    store.removeAll();
   }
 
   function removeBlankHighlights() {
@@ -134,11 +133,7 @@ function App() {
           highlighterRef.current?.remove(highlightId);
 
           setHighlightTooltips((prev) =>
-            prev.filter((tooltip) => {
-              if (tooltip.id !== highlightId) {
-                return tooltip;
-              }
-            })
+            prev.filter((tooltip) => tooltip.id !== highlightId)
           );
         }
       });
@@ -191,11 +186,13 @@ function App() {
       const highlightColor = storedHighlights.find(
         (storedHighlight) => storedHighlight.highlightSource.id === highlightId
       )?.highlightSource.extra.color;
-      const position = getPosition(highlighter.getDoms(highlightId)[0]);
+      const highlightDoms = highlighter.getDoms(highlightId);
+      const position = getPosition(highlightDoms);
       const tooltip = {
         id: highlightId,
         top: position.top,
         left: position.left,
+        width: position.width,
         isDeleteTooltip: true,
         isVisible: false,
       };
@@ -248,11 +245,13 @@ function App() {
             }))
           );
 
-          const position = getPosition(highlighter.getDoms(source.id)[0]);
+          const highlightDoms = highlighter.getDoms(source.id);
+          const position = getPosition(highlightDoms);
           const tooltip = {
             id: source.id,
             top: position.top,
             left: position.left,
+            width: position.width,
             isDeleteTooltip: isHighlighterActiveRef.current ? true : false,
             isVisible: isHighlighterActiveRef.current ? false : true,
           };
@@ -279,7 +278,6 @@ function App() {
     return () => {
       highlighter.dispose();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -339,6 +337,7 @@ function App() {
           className="highlight-tooltip"
           top={tooltip.top}
           left={tooltip.left}
+          width={tooltip.width}
           id={tooltip.id}
           onClick={() =>
             handleClickTooltip({

@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export function getPosition(node: any) {
-  const offset = {
-    top: 0,
-    left: 0,
-  };
-  while (node) {
-    offset.top += node.offsetTop;
-    offset.left += node.offsetLeft;
-    node = node.offsetParent;
-  }
+export function getPosition(highlightNodes: HTMLElement[]) {
+  const firstDom = highlightNodes[0].getBoundingClientRect();
+  const lastDom =
+    highlightNodes[highlightNodes.length - 1].getBoundingClientRect();
 
-  return offset;
+  const position = {
+    top: (firstDom.top + lastDom.bottom) / 2 - 55,
+    left: (firstDom.left + lastDom.right) / 2,
+    width: firstDom.width,
+  };
+
+  return position;
 }
